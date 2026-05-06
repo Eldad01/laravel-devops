@@ -17,6 +17,18 @@ COPY . .
 
 RUN composer install
 
+RUN cp .env.example .env
+
+RUN php artisan key:generate
+
+RUN touch database/database.sqlite
+
+RUN sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+
+RUN php artisan migrate
+
+RUN php artisan config:clear
+
 EXPOSE 8000
 
 CMD php artisan serve --host=0.0.0.0 --port=8000
