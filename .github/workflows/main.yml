@@ -67,3 +67,23 @@ jobs:
           docker tag ${{ secrets.DOCKER_USERNAME }}/laravel-app:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/laravel-app:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/laravel-app:${{ github.sha }}
           docker push ${{ secrets.DOCKER_USERNAME }}/laravel-app:latest
+
+  deploy:
+    needs: push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/laravel-app:latest
+            docker stop laravel-app || true
+            docker rm laravel-app || true
+            docker run -d -p 80:8000 --name laravel-app ${{ secrets.DOCKER_USERNAME }}/laravel-app:latest
+
+
+
